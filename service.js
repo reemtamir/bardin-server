@@ -120,25 +120,26 @@ const signIn = async (req, res) => {
     console.log('error', error);
   }
 };
-
+// create - remove from favorites
 const addToFavorites = async (req, res) => {
-  const favoriteUser = await User.findById({ _id: req.params.id });
-  const { name, image, age, gender } = favoriteUser;
-  const user = await User.updateOne(
-    { email: req.body.email },
+  try {
+    const favoriteUser = await User.findById({ _id: req.params.id });
+    const { name, image, age, gender } = favoriteUser;
 
-    {
-      $push: {
-        favorites: { name, age, gender, image },
+    const user = await User.updateOne(
+      { email: req.body.email },
+
+      {
+        $push: {
+          favorites: { name, age, gender, image },
+        },
       },
-    },
-    { new: true }
-  );
-  res.send(user);
-
-  // const me = await User.findOne({ email: req.body.email });
-
-  // res.send({ favorite: _.pick(favoriteUser, ['name', 'image']), me });
+      { new: true }
+    );
+    res.send(user);
+  } catch (error) {
+    console.log(error);
+  }
 };
 module.exports = {
   getAlUsers,
