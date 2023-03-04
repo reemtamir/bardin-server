@@ -2,6 +2,7 @@ const { User, validateUser, validateSignIn } = require('./schema');
 const bcrypt = require('bcrypt');
 const _ = require('lodash');
 const getAge = require('./utils/fn');
+const { Collection } = require('mongoose');
 
 const createUser = async (req, res) => {
   const { error } = validateUser(req.body);
@@ -41,14 +42,13 @@ const createUser = async (req, res) => {
       image: image,
       vip: vip,
     }).save();
+    res.send(user);
   } catch (error) {
-    return error;
+    res.status(400).send(error);
   }
-
-  res.send(user);
 };
 const getUser = async (req, res) => {
-  const user = await User.findOne({ email: req.params.email });
+  const user = await User.findById({ _id: req.params.id });
 
   res.send(user);
 };
@@ -57,7 +57,8 @@ const getAlUsers = async (req, res) => {
   res.send(users);
 };
 const editUser = async (req, res) => {
-  const { error } = validateUser(req.body);
+  const { _id, vip, createdAt, __v, ...rest } = req.body;
+  const { error } = validateUser(rest);
   if (error) {
     res.status(400).send(error.details[0].message);
     return;
@@ -67,20 +68,20 @@ const editUser = async (req, res) => {
     email,
     password,
     gender,
-    age,
+
     image = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
   } = req.body;
 
   const user = await User.updateOne(
     {
-      email: req.params.email,
+      _id: req.params.id,
     },
     {
       $set: {
         name: name,
         email: email,
         password: await bcrypt.hash(password, 12),
-        age: age,
+
         gender: gender,
         image: image,
       },
@@ -91,10 +92,10 @@ const editUser = async (req, res) => {
   res.send(user);
 };
 const deleteUser = async (req, res) => {
-  const user = await User.findOneAndDelete({ email: req.params.email });
+  const user = await User.findOneAndDelete({ _id: req.params.id });
   res.send('deleted');
 };
-const singIn = async (req, res) => {
+const signIn = async (req, res) => {
   const { error } = validateSignIn(req.body);
   if (error) {
     res.status(400).send(error.details[0].message);
@@ -102,6 +103,7 @@ const singIn = async (req, res) => {
   }
   try {
     const { email: mail, password } = req.body;
+
     const user = await User.findOne({
       email: mail,
     });
@@ -118,11 +120,20 @@ const singIn = async (req, res) => {
     console.log('error', error);
   }
 };
+
+const addToFavorites = async (req, res) => {
+  console.log('req.body', req.body);
+  const favoriteUser = await User.findById({ _id: req.params.id });
+  const me = await User.findOne({ email: req.body.email });
+
+  res.send({ favorite: _.pick(favoriteUser, ['name', 'image']), me });
+};
 module.exports = {
   getAlUsers,
   createUser,
   editUser,
   getUser,
-  singIn,
+  signIn,
   deleteUser,
+  addToFavorites,
 };

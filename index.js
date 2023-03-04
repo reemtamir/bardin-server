@@ -4,14 +4,10 @@ const PORT = 3000;
 const { connect, User } = require('./schema');
 const http = require('http').Server(app);
 const cors = require('cors');
-const {
-  getAlUsers,
-  createUser,
-  editUser,
-  getUser,
-  singIn,
-  deleteUser,
-} = require('./service');
+const usersRouter = require('./routes/users');
+const authRouter = require('./routes/auth');
+const profileRouter = require('./routes/my-profile');
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded());
@@ -25,49 +21,44 @@ let users = [];
 let names = [];
 
 connect();
-app.post('/users', createUser);
+app.use('/users', usersRouter);
+app.use('/auth', authRouter);
 
-app.put('/me/:email', editUser);
+app.use('/me', profileRouter);
 
-app.get('/users', getAlUsers);
-app.get('/me/:email', getUser);
+// app.get('/api', (req, res) => {
+//   console.log('api');
+//   socketIO.on('connection', (socket) => {
+//     console.log(`⚡: ${socket.id} user just connected!`);
 
-app.post('/auth', singIn);
-app.delete('/delete/:email', deleteUser);
+//     socket.on('message', (data) => {
+//       console.log('data', data);
+//       socketIO.emit('messageResponse', data);
+//     });
 
-app.get('/api', (req, res) => {
-  console.log('api');
-  socketIO.on('connection', (socket) => {
-    console.log(`⚡: ${socket.id} user just connected!`);
+//     socket.on('typing', (data) =>
+//       socket.broadcast.emit('typingResponse', data)
+//     );
 
-    socket.on('message', (data) => {
-      console.log('data', data);
-      socketIO.emit('messageResponse', data);
-    });
+//     socket.on('newUser', (data) => {
+//       console.log('data', data);
+//       // names.push(data);
 
-    socket.on('typing', (data) =>
-      socket.broadcast.emit('typingResponse', data)
-    );
+//       // console.log('users', names);
 
-    socket.on('newUser', (data) => {
-      console.log('data', data);
-      // names.push(data);
+//       socketIO.emit('newUserResponse', data);
+//     });
 
-      // console.log('users', names);
+//     socket.on('disconnect', () => {
+//       console.log('🔥: A user disconnected');
 
-      socketIO.emit('newUserResponse', data);
-    });
+//       users = users.filter((user) => user.socketID !== socket.id);
 
-    socket.on('disconnect', () => {
-      console.log('🔥: A user disconnected');
-
-      users = users.filter((user) => user.socketID !== socket.id);
-
-      socketIO.emit('newUserResponse', users);
-      socket.disconnect();
-    });
-  });
-});
+//       socketIO.emit('newUserResponse', users);
+//       socket.disconnect();
+//     });
+//   });
+// });
 http.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
 });

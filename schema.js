@@ -24,6 +24,7 @@ const userSchema = mongoose.Schema({
   gender: { type: String },
   createdAt: { type: Date, default: Date.now },
   vip: { type: Boolean, default: false },
+  favorites: { type: Array },
 });
 
 userSchema.methods.generateToken = function () {
