@@ -122,11 +122,23 @@ const signIn = async (req, res) => {
 };
 
 const addToFavorites = async (req, res) => {
-  console.log('req.body', req.body);
   const favoriteUser = await User.findById({ _id: req.params.id });
-  const me = await User.findOne({ email: req.body.email });
+  const { name, image, age, gender } = favoriteUser;
+  const user = await User.updateOne(
+    { email: req.body.email },
 
-  res.send({ favorite: _.pick(favoriteUser, ['name', 'image']), me });
+    {
+      $push: {
+        favorites: { name, age, gender, image },
+      },
+    },
+    { new: true }
+  );
+  res.send(user);
+
+  // const me = await User.findOne({ email: req.body.email });
+
+  // res.send({ favorite: _.pick(favoriteUser, ['name', 'image']), me });
 };
 module.exports = {
   getAlUsers,
