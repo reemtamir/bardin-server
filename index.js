@@ -8,13 +8,17 @@ const usersRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
 const profileRouter = require('./routes/my-profile');
 
-app.use(cors());
+app.use(
+  cors({
+    origin: 'https://reemtamir.github.io',
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded());
 app.use(express.text());
 const socketIO = require('socket.io')(http, {
   cors: {
-    origin: 'http://localhost:3001',
+    origin: 'https://reemtamir.github.io',
   },
 });
 let users = [];

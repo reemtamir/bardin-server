@@ -2,7 +2,6 @@ const { User, validateUser, validateSignIn } = require('./schema');
 const bcrypt = require('bcrypt');
 const _ = require('lodash');
 const getAge = require('./utils/fn');
-const { Collection } = require('mongoose');
 
 const createUser = async (req, res) => {
   const { error } = validateUser(req.body);
@@ -57,9 +56,11 @@ const getAlUsers = async (req, res) => {
   res.send(users);
 };
 const editUser = async (req, res) => {
+  console.log('gggg', req.body);
   const { _id, vip, createdAt, __v, ...rest } = req.body;
   const { error } = validateUser(rest);
   if (error) {
+    console.log(error);
     res.status(400).send(error.details[0].message);
     return;
   }
