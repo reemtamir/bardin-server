@@ -29,7 +29,12 @@ const userSchema = mongoose.Schema({
 
 userSchema.methods.generateToken = function () {
   return jwt.sign(
-    { email: this.email, _id: this._id, vip: this.vip },
+    {
+      email: this.email,
+      _id: this._id,
+      vip: this.vip,
+      favorites: this.favorites,
+    },
     process.env.JWT_SECRET_TOKEN
   );
 };

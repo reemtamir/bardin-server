@@ -16,6 +16,7 @@ const createUser = async (req, res) => {
     vip,
     gender,
     age,
+    isFavorite,
     image = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
   } = req.body;
 
@@ -40,6 +41,7 @@ const createUser = async (req, res) => {
       age: calculatedAge,
       image: image,
       vip: vip,
+      isFavorite: isFavorite,
     }).save();
     res.send(user);
   } catch (error) {
@@ -55,9 +57,14 @@ const getAlUsers = async (req, res) => {
   const users = await User.find({});
   res.send(users);
 };
+const getUsersById = async (req, res) => {
+  const { usersIdList } = req.query;
+  const users = await User.find({ _id: { $in: usersIdList } });
+
+  res.send(users);
+};
 const editUser = async (req, res) => {
-  console.log('gggg', req.body);
-  const { _id, vip, createdAt, __v, ...rest } = req.body;
+  const { _id, vip, createdAt, __v, favorites, ...rest } = req.body;
   const { error } = validateUser(rest);
   if (error) {
     console.log(error);
@@ -97,6 +104,7 @@ const deleteUser = async (req, res) => {
   res.send('deleted');
 };
 const signIn = async (req, res) => {
+
   const { error } = validateSignIn(req.body);
   if (error) {
     res.status(400).send(error.details[0].message);
@@ -121,23 +129,48 @@ const signIn = async (req, res) => {
     console.log('error', error);
   }
 };
-// create - remove from favorites
+
 const addToFavorites = async (req, res) => {
   try {
     const favoriteUser = await User.findById({ _id: req.params.id });
-    const { name, image, age, gender } = favoriteUser;
+
+    let { _id, name, image, age, gender } = favoriteUser;
 
     const user = await User.updateOne(
       { email: req.body.email },
 
       {
-        $push: {
-          favorites: { name, age, gender, image },
+        $addToSet: {
+          favorites: _id,
         },
       },
       { new: true }
     );
-    res.send(user);
+   
+    res.send(_id);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const removeFromFavorites = async (req, res) => {
+
+  try {
+    const favoriteUser = await User.findById(req.params.id);
+
+   
+    const user = await User.updateOne(
+      { email: req.body.email },
+
+      {
+        $pull: {
+          favorites: favoriteUser._id,
+        },
+      },
+      { new: true }
+    );
+
+    res.send(favoriteUser._id);
   } catch (error) {
     console.log(error);
   }
@@ -150,4 +183,6 @@ module.exports = {
   signIn,
   deleteUser,
   addToFavorites,
+  getUsersById,
+  removeFromFavorites,
 };

@@ -1,0 +1,14 @@
+@local= http://localhost:3000
+
+GET {{local}}/users/get-by-id
+Content-Type: application/json
+
+{ "usersIdList": ["640720dbb5b7aa89a1eca22d", "640725ec8c1df625433b0ad7"]}
+
+
+###
+POST  {{local}}/me/remove-favorites/640725ec8c1df625433b0ad7
+Content-Type: application/json
+
+{ "email": "gvbgvb@gm.com" }
+
