@@ -1,8 +1,15 @@
-const { User, validateUser, validateSignIn } = require('./schema');
+const {
+  User,
+  validateUser,
+  validateSignIn,
+  Admin,
+  validateAdmin,
+} = require('./schema');
 const bcrypt = require('bcrypt');
 const _ = require('lodash');
 const getAge = require('./utils/fn');
-
+const mongoose = require('mongoose');
+///////USER
 const createUser = async (req, res) => {
   const { error } = validateUser(req.body);
   if (error) {
@@ -48,6 +55,32 @@ const createUser = async (req, res) => {
     res.status(400).send(error);
   }
 };
+const signIn = async (req, res) => {
+  const { error } = validateSignIn(req.body);
+  if (error) {
+    res.status(400).send(error.details[0].message);
+    return;
+  }
+  try {
+    const { email: mail, password } = req.body;
+
+    const user = await User.findOne({
+      email: mail,
+    });
+    if (!user) return;
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      res.status(400).send('Invalid  password');
+      return;
+    }
+    const token = user.generateToken();
+
+    res.send(token);
+  } catch (error) {
+    console.log('error', error);
+  }
+};
+
 const getUser = async (req, res) => {
   const user = await User.findById({ _id: req.params.id });
 
@@ -57,11 +90,72 @@ const getAlUsers = async (req, res) => {
   const users = await User.find({});
   res.send(users);
 };
-const getUsersById = async (req, res) => {
-  const { usersIdList } = req.query;
-  const users = await User.find({ _id: { $in: usersIdList } });
 
-  res.send(users);
+const addToFavorites = async (req, res) => {
+  try {
+    const favoriteUser = await User.findById({ _id: req.params.id });
+
+    let { _id, name, image, age, gender, vip } = favoriteUser;
+
+    const user = await User.updateOne(
+      { email: req.body.email },
+
+      {
+        $addToSet: {
+          favorites: { _id, name, image, age, gender, vip },
+        },
+      },
+      { new: true }
+    );
+
+    res.status(200).send(favoriteUser);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const removeFromFavorites = async (req, res) => {
+  try {
+    const deletesUser = await User.findOne({ _id: req.params.id });
+    const user = await User.findOneAndUpdate(
+      { email: req.body.email },
+      { $pull: { favorites: { _id: mongoose.Types.ObjectId(req.params.id) } } },
+      { new: true }
+    );
+
+    res.send(deletesUser);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const getFavoritesUsers = async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.params.id });
+
+    res.send(user.favorites);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const getNotFavoritesUsers = async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.params.id });
+    if (!user) {
+      res.status(400).send('User not found');
+    }
+    const users = await User.find({
+      _id: { $ne: req.params.id },
+      _id: { $nin: user.favorites.map((favorite) => favorite._id) },
+    });
+    const filteredUsers = users.filter(
+      (u) => u._id.toString() !== user._id.toString()
+    );
+    res.send(filteredUsers);
+  } catch (error) {
+    console.log(error);
+  }
 };
 const editUser = async (req, res) => {
   const { _id, vip, createdAt, __v, favorites, ...rest } = req.body;
@@ -103,86 +197,66 @@ const deleteUser = async (req, res) => {
   const user = await User.findOneAndDelete({ _id: req.params.id });
   res.send('deleted');
 };
-const signIn = async (req, res) => {
 
-  const { error } = validateSignIn(req.body);
+///////////ADMIN
+const createAdmin = async (req, res) => {
+  const { error } = validateAdmin(req.body);
   if (error) {
     res.status(400).send(error.details[0].message);
     return;
   }
+  let { email, password } = req.body;
+
+  let admin = await Admin.findOne({ email: email });
+  if (admin) {
+    res.status(400).send('Admin already registered');
+    return;
+  }
+
   try {
-    const { email: mail, password } = req.body;
-
-    const user = await User.findOne({
-      email: mail,
-    });
-    if (!user) return;
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      res.status(400).send('Invalid  password');
-      return;
-    }
-    const token = user.generateToken();
-
-    res.send(token);
+    admin = await new Admin({
+      email: email,
+      password: await bcrypt.hash(password, 12),
+    }).save();
+    res.send(admin);
   } catch (error) {
-    console.log('error', error);
+    res.status(400).send(error);
   }
 };
+const changeVip = async (req, res) => {
+  const admin = await Admin.findById({ _id: req.params.id });
 
-const addToFavorites = async (req, res) => {
-  try {
-    const favoriteUser = await User.findById({ _id: req.params.id });
+  if (!admin) {
+    res.status(400).send('Access denied. only for Admins');
+    return;
+  }
 
-    let { _id, name, image, age, gender } = favoriteUser;
-
-    const user = await User.updateOne(
-      { email: req.body.email },
-
-      {
-        $addToSet: {
-          favorites: _id,
-        },
+  const user = await User.updateOne(
+    {
+      email: req.body.email,
+    },
+    {
+      $set: {
+        vip: true,
       },
-      { new: true }
-    );
-   
-    res.send(_id);
-  } catch (error) {
-    console.log(error);
-  }
+    },
+    { new: true }
+  );
+
+  res.send(user);
 };
 
-const removeFromFavorites = async (req, res) => {
-
-  try {
-    const favoriteUser = await User.findById(req.params.id);
-
-   
-    const user = await User.updateOne(
-      { email: req.body.email },
-
-      {
-        $pull: {
-          favorites: favoriteUser._id,
-        },
-      },
-      { new: true }
-    );
-
-    res.send(favoriteUser._id);
-  } catch (error) {
-    console.log(error);
-  }
-};
 module.exports = {
-  getAlUsers,
   createUser,
-  editUser,
-  getUser,
   signIn,
-  deleteUser,
+  getUser,
+  getAlUsers,
   addToFavorites,
-  getUsersById,
   removeFromFavorites,
+  getFavoritesUsers,
+  getNotFavoritesUsers,
+  editUser,
+  deleteUser,
+  createAdmin,
+  changeVip,
 };

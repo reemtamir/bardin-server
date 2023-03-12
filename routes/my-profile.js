@@ -1,6 +1,6 @@
 const express = require('express');
 const profileRouter = express.Router();
-
+const middlw = require('../middleware');
 const {
   editUser,
   getUser,
@@ -10,9 +10,9 @@ const {
 } = require('../service');
 
 profileRouter.get('/:id', getUser);
-profileRouter.post('/favorites/:id', addToFavorites);
-profileRouter.post('/remove-favorites/:id', removeFromFavorites);
-profileRouter.put('/edit/:id', editUser);
-profileRouter.delete('/delete/:id', deleteUser);
+profileRouter.post('/favorites/:id', middlw, addToFavorites);
+profileRouter.post('/remove-favorites/:id', middlw, removeFromFavorites);
+profileRouter.put('/edit/:id', middlw, editUser);
+profileRouter.delete('/delete/:id', middlw, deleteUser);
 
 module.exports = profileRouter;

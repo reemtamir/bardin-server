@@ -1,14 +1,42 @@
 @local= http://localhost:3000
-
-GET {{local}}/users/get-by-id
+@token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImdyYmhlQGdyZ3IuY29tIiwiX2lkIjoiNjQwYmZlMmMwNjU5ZjVhMjdiYzk0MWQ0IiwidmlwIjp0cnVlLCJhZG1pbiI6dHJ1ZSwiaWF0IjoxNjc4NjI1MTI2fQ.jSOdIZA3BJgJnJLcMrH7oONHS50Z1V0YKl3W9t6topU
+POST {{local}}/admin
 Content-Type: application/json
 
-{ "usersIdList": ["640720dbb5b7aa89a1eca22d", "640725ec8c1df625433b0ad7"]}
+{"email":"4@gmail.com", "password":"111111"}
+
+###
+
+POST {{local}}/users
+Content-Type: application/json
+
+{"name":"tom","email":"333@g.com","password":"111111"}
+
+###
+GET {{local}}/users/get-favorites/640df4915e4e3e14436d177a
+Content-Type: application/json
+
 
 
 ###
-POST  {{local}}/me/remove-favorites/640725ec8c1df625433b0ad7
+POST {{local}}/me/remove-favorites/640deb6e81b08c9a1ad186e2
+Content-Type: application/json
+x-auth-token:{{token}}
+
+{ "email": "111@g.com" }
+
+###
+
+PUT {{local}}/admin/change-vip/640bec2888461569a88b76c8
+Content-Type: application/json
+x-auth-token:{{token}}
+
+
+{"email":"reem.tamir36@gmail.com"}
+###
+
+POST {{local}}/me/favorites/640deb6e81b08c9a1ad186e2
+x-auth-token:{{token}}
 Content-Type: application/json
 
-{ "email": "gvbgvb@gm.com" }
-
+{"email":"111@g.com"}

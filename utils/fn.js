@@ -1,4 +1,4 @@
-module.exports = getAge = (age) => {
+module.exports = (age) => {
   const year = age[0] + age[1] + age[2] + age[3];
   const month = age[5] + age[6];
   const day = age[8] + age[9];

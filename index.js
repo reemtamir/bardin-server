@@ -1,31 +1,31 @@
 const express = require('express');
 const app = express();
 const PORT = 3000;
-const { connect, User } = require('./schema');
+const { connect } = require('./schema');
 const http = require('http').Server(app);
 const cors = require('cors');
 const usersRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
 const profileRouter = require('./routes/my-profile');
-
+const adminRouter = require('./routes/admin');
+const morgan = require('morgan');
 //{ origin: 'https://reemtamir.github.io',}
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded());
 app.use(express.text());
+app.use(morgan('dev'));
 const socketIO = require('socket.io')(http, {
   cors: {
     origin: 'http://localhost:3002',
   },
 });
-let users = [];
-let names = [];
 
 connect();
 app.use('/users', usersRouter);
 app.use('/auth', authRouter);
-
 app.use('/me', profileRouter);
+app.use('/admin', adminRouter);
 
 // app.get('/api', (req, res) => {
 //   console.log('api');

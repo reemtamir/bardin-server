@@ -57,4 +57,41 @@ const validateSignIn = (user) => {
   return schema.validate(user);
 };
 const User = mongoose.model('User', userSchema, 'users');
-module.exports = { User, validateUser, connect, validateSignIn };
+
+const adminSchema = mongoose.Schema({
+  email: { type: String, unique: true, required: true },
+  password: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+  vip: { type: Boolean, default: true },
+  admin: { type: Boolean, default: true },
+});
+
+adminSchema.methods.generateToken = function () {
+  return jwt.sign(
+    {
+      email: this.email,
+      _id: this._id,
+      vip: this.vip,
+      admin: this.admin,
+    },
+    process.env.JWT_SECRET_TOKEN
+  );
+};
+const validateAdmin = (user) => {
+  const schema = Joi.object({
+    email: Joi.string().min(6).max(255).required().email(),
+    password: Joi.string().min(6).max(1064).required(),
+  });
+  return schema.validate(user);
+};
+
+const Admin = mongoose.model('Admin', adminSchema, 'admins');
+
+module.exports = {
+  User,
+  validateUser,
+  connect,
+  validateSignIn,
+  Admin,
+  validateAdmin,
+};
