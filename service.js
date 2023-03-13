@@ -223,6 +223,34 @@ const createAdmin = async (req, res) => {
     res.status(400).send(error);
   }
 };
+const adminSignIn = async (req, res) => {
+  console.log('req', req.body);
+  const { error } = validateAdmin(req.body);
+  if (error) {
+    res.status(400).send(error.details[0].message);
+    return;
+  }
+  try {
+    const { email: mail, password } = req.body;
+
+    const admin = await Admin.findOne({
+      email: mail,
+    });
+    if (!admin) return;
+    const isValidPassword = await bcrypt.compare(password, admin.password);
+    if (!isValidPassword) {
+      res.status(400).send('Invalid  password');
+      return;
+    }
+    const token = admin.generateToken();
+    console.log(token);
+    res.send(token);
+  } catch (error) {
+    1;
+    console.log('error', error);
+  }
+};
+
 const changeVip = async (req, res) => {
   const admin = await Admin.findById({ _id: req.params.id });
 
@@ -258,5 +286,6 @@ module.exports = {
   editUser,
   deleteUser,
   createAdmin,
+  adminSignIn,
   changeVip,
 };
