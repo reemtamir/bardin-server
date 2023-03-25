@@ -5,12 +5,7 @@ Content-Type: application/json
 
 {"email":"4@gmail.com", "password":"111111"}
 
-###
 
-POST {{local}}/users
-Content-Type: application/json
-
-{"name":"tom","email":"333@g.com","password":"111111"}
 
 ###
 GET {{local}}/users/get-favorites/640df4915e4e3e14436d177a
@@ -27,12 +22,12 @@ x-auth-token:{{token}}
 
 ###
 
-PUT {{local}}/admin/change-vip/640bec2888461569a88b76c8
+PUT {{local}}/admin/change-vip/6419a5bc57fefdeecc496e94?email=wfee@g.com`
 Content-Type: application/json
 x-auth-token:{{token}}
 
 
-{"email":"reem.tamir36@gmail.com"}
+{"isVip":false}
 ###
 
 POST {{local}}/me/favorites/640deb6e81b08c9a1ad186e2
@@ -40,3 +35,22 @@ x-auth-token:{{token}}
 Content-Type: application/json
 
 {"email":"111@g.com"}
+###
+
+POST {{local}}/users/vip
+Content-Type: application/json
+
+{"email":"22@g.com","cardNumber":"ffffgff"}
+
+###
+
+GET {{local}}/admin/vip-req
+Content-Type: application/json
+
+###
+
+DELETE {{local}}/admin/delete-vip-req/6419a5bc57fefdeecc496e94
+x-auth-token:{{token}}
+Content-Type: application/json
+
+{"email":"eee@g.com"}

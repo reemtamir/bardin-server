@@ -4,6 +4,8 @@ const {
   validateSignIn,
   Admin,
   validateAdmin,
+  Vip,
+  validateVipReq,
 } = require('./schema');
 const bcrypt = require('bcrypt');
 const _ = require('lodash');
@@ -35,7 +37,7 @@ const createUser = async (req, res) => {
 
   let calculatedAge = getAge(age);
   if (calculatedAge < 18) {
-    res.status(404).send('User to young');
+    res.status(404).send('User too young');
     return;
   }
 
@@ -67,7 +69,10 @@ const signIn = async (req, res) => {
     const user = await User.findOne({
       email: mail,
     });
-    if (!user) return;
+    if (!user) {
+      res.status(400).send('User not found');
+      return;
+    }
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
       res.status(400).send('Invalid  password');
@@ -132,7 +137,8 @@ const removeFromFavorites = async (req, res) => {
 const getFavoritesUsers = async (req, res) => {
   try {
     const user = await User.findOne({ _id: req.params.id });
-
+    if (!user) return;
+    if (!user.favorites) return;
     res.send(user.favorites);
   } catch (error) {
     console.log(error);
@@ -144,6 +150,7 @@ const getNotFavoritesUsers = async (req, res) => {
     const user = await User.findOne({ _id: req.params.id });
     if (!user) {
       res.status(400).send('User not found');
+      return;
     }
     const users = await User.find({
       _id: { $ne: req.params.id },
@@ -174,7 +181,7 @@ const editUser = async (req, res) => {
     image = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
   } = req.body;
 
-  const user = await User.updateOne(
+  const user = await User.findByIdAndUpdate(
     {
       _id: req.params.id,
     },
@@ -194,8 +201,33 @@ const editUser = async (req, res) => {
   res.send(user);
 };
 const deleteUser = async (req, res) => {
-  const user = await User.findOneAndDelete({ _id: req.params.id });
+  await User.findOneAndDelete({ _id: req.params.id });
   res.send('deleted');
+};
+
+const askVip = async (req, res) => {
+  const { error } = validateVipReq({ ...req.body });
+  if (error) {
+    console.log(error);
+    res.status(400).send(error.details[0].message);
+    return;
+  }
+  try {
+    let vipReq = await Vip.findOne({
+      email: req.body.email,
+    });
+    if (vipReq) {
+      res.status(400).send(' The req has already sent and it is in process');
+      return;
+    }
+    vipReq = await new Vip({
+      email: req.body.email,
+      cardNumber: req.body.cardNumber,
+    }).save();
+    res.send(vipReq);
+  } catch ({ error }) {
+    res.status(400).send(error);
+  }
 };
 
 ///////////ADMIN
@@ -206,15 +238,18 @@ const createAdmin = async (req, res) => {
     return;
   }
   let { email, password } = req.body;
-
-  let admin = await Admin.findOne({ email: email });
-  if (admin) {
-    res.status(400).send('Admin already registered');
-    return;
+  try {
+    let admin = await Admin.findOne({ email: email });
+    if (admin) {
+      res.status(404).send('Admin already registered');
+      return;
+    }
+  } catch (error) {
+    res.status(400).send(error);
   }
 
   try {
-    admin = await new Admin({
+    const admin = await new Admin({
       email: email,
       password: await bcrypt.hash(password, 12),
     }).save();
@@ -224,7 +259,6 @@ const createAdmin = async (req, res) => {
   }
 };
 const adminSignIn = async (req, res) => {
-  console.log('req', req.body);
   const { error } = validateAdmin(req.body);
   if (error) {
     res.status(400).send(error.details[0].message);
@@ -236,18 +270,20 @@ const adminSignIn = async (req, res) => {
     const admin = await Admin.findOne({
       email: mail,
     });
-    if (!admin) return;
+    if (!admin) {
+      res.status(400).send('User not found');
+      return;
+    }
     const isValidPassword = await bcrypt.compare(password, admin.password);
     if (!isValidPassword) {
-      res.status(400).send('Invalid  password');
+      res.status(404).send('Invalid  password');
       return;
     }
     const token = admin.generateToken();
-    console.log(token);
+
     res.send(token);
-  } catch (error) {
-    1;
-    console.log('error', error);
+  } catch ({ error }) {
+    return error;
   }
 };
 
@@ -261,17 +297,27 @@ const changeVip = async (req, res) => {
 
   const user = await User.updateOne(
     {
-      email: req.body.email,
+      email: req.query.email,
     },
     {
       $set: {
-        vip: true,
+        vip: req.body.isVip,
       },
     },
     { new: true }
   );
 
   res.send(user);
+};
+
+const getVipReq = async (req, res) => {
+  const vipReq = await Vip.find({});
+  res.send(vipReq);
+};
+
+const deleteVipReq = async (req, res) => {
+  const deletedReq = await Vip.findOneAndDelete({ email: req.body.email });
+  res.send(deletedReq);
 };
 
 module.exports = {
@@ -288,4 +334,7 @@ module.exports = {
   createAdmin,
   adminSignIn,
   changeVip,
+  askVip,
+  getVipReq,
+  deleteVipReq,
 };
