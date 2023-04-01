@@ -6,7 +6,7 @@ const {
   createUser,
   getFavoritesUsers,
   getNotFavoritesUsers,
-  askVip
+  askVip,
 } = require('../service');
 
 usersRouter.post('/', createUser);

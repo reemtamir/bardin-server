@@ -30,6 +30,7 @@ const userSchema = mongoose.Schema({
 userSchema.methods.generateToken = function () {
   return jwt.sign(
     {
+      name: this.name,
       email: this.email,
       _id: this._id,
       vip: this.vip,
@@ -40,9 +41,22 @@ userSchema.methods.generateToken = function () {
 };
 const validateUser = (user) => {
   const schema = Joi.object({
-    name: Joi.string().min(2).max(255).required(),
+    name: Joi.string()
+      .min(2)
+      .max(255)
+      .regex(
+        /^[\u0590-\u05fe\u0621-\u064aA-Za-z]+(([',. -][\u0590-\u05fe\u0621-\u064aA-Za-z ])?[\u0590-\u05fe\u0621-\u064aA-Za-z]*)*$/
+      )
+
+      .required(),
     email: Joi.string().min(6).max(255).required().email(),
-    password: Joi.string().min(6).max(1064).required(),
+    password: Joi.string()
+      .min(6)
+      .max(1064)
+      .pattern(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z\u0590-\u05FF]).{6,}$/u
+      )
+      .required(),
     age: Joi.string(),
     gender: Joi.string(),
     image: Joi.string().allow(''),
@@ -52,13 +66,20 @@ const validateUser = (user) => {
 const validateSignIn = (user) => {
   const schema = Joi.object({
     email: Joi.string().min(6).max(255).required().email(),
-    password: Joi.string().min(6).max(1064).required(),
+    password: Joi.string()
+      .min(6)
+      .max(1064)
+      .pattern(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z\u0590-\u05FF]).{6,}$/u
+      )
+      .required(),
   });
   return schema.validate(user);
 };
 const User = mongoose.model('User', userSchema, 'users');
 
 const adminSchema = mongoose.Schema({
+  name: { type: String, required: true },
   email: { type: String, unique: true, required: true },
   password: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
@@ -69,6 +90,7 @@ const adminSchema = mongoose.Schema({
 adminSchema.methods.generateToken = function () {
   return jwt.sign(
     {
+      name: this.name,
       email: this.email,
       _id: this._id,
       vip: this.vip,
@@ -79,8 +101,20 @@ adminSchema.methods.generateToken = function () {
 };
 const validateAdmin = (user) => {
   const schema = Joi.object({
+    name: Joi.string()
+      .min(2)
+      .max(255)
+      .regex(
+        /^[\u0590-\u05fe\u0621-\u064aA-Za-z]+(([',. -][\u0590-\u05fe\u0621-\u064aA-Za-z ])?[\u0590-\u05fe\u0621-\u064aA-Za-z]*)*$/
+      )
+
+      .required(),
     email: Joi.string().min(6).max(255).required().email(),
-    password: Joi.string().min(6).max(1064).required(),
+    password: Joi.string()
+      .min(6)
+      .max(1064)
+      .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{6,}$/)
+      .required(),
   });
   return schema.validate(user);
 };

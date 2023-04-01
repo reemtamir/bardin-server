@@ -237,19 +237,20 @@ const createAdmin = async (req, res) => {
     res.status(400).send(error.details[0].message);
     return;
   }
-  let { email, password } = req.body;
+  let { email, password, name } = req.body;
   try {
     let admin = await Admin.findOne({ email: email });
     if (admin) {
       res.status(404).send('Admin already registered');
       return;
     }
-  } catch (error) {
-    res.status(400).send(error);
+  } catch ({ response }) {
+    res.status(400).send(response.data);
   }
 
   try {
     const admin = await new Admin({
+      name: name,
       email: email,
       password: await bcrypt.hash(password, 12),
     }).save();
@@ -259,7 +260,7 @@ const createAdmin = async (req, res) => {
   }
 };
 const adminSignIn = async (req, res) => {
-  const { error } = validateAdmin(req.body);
+  const { error } = validateSignIn(req.body);
   if (error) {
     res.status(400).send(error.details[0].message);
     return;
