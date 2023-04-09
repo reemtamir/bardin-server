@@ -25,6 +25,7 @@ const userSchema = mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   vip: { type: Boolean, default: false },
   favorites: { type: Array },
+  blockList: { type: Array },
 });
 
 userSchema.methods.generateToken = function () {
@@ -35,6 +36,7 @@ userSchema.methods.generateToken = function () {
       _id: this._id,
       vip: this.vip,
       favorites: this.favorites,
+      blockList: this.blockList,
     },
     process.env.JWT_SECRET_TOKEN
   );

@@ -11,6 +11,7 @@ const bcrypt = require('bcrypt');
 const _ = require('lodash');
 const getAge = require('./utils/fn');
 const mongoose = require('mongoose');
+const { not } = require('joi');
 ///////USER
 const createUser = async (req, res) => {
   const { error } = validateUser(req.body);
@@ -91,9 +92,49 @@ const getUser = async (req, res) => {
 
   res.send(user);
 };
+const getUsers = async (req, res) => {
+  try {
+    const activUser = await User.findById({ _id: req.params.id });
+    const users = await User.find({ _id: { $ne: activUser._id } });
+    const usersWithBlockList = [];
+    for (let key of users) {
+      if (key.blockList.length) {
+        usersWithBlockList.push(key);
+      }
+    }
+
+    const idOfUsersWhoBlockMe = [];
+    for (let user of usersWithBlockList) {
+      for (let item of user.blockList) {
+        if (item._id.toString() === activUser._id.toString()) {
+          console.log(' block-you', user);
+          idOfUsersWhoBlockMe.push(user._id);
+        }
+      }
+    }
+
+    const usersToShow = await User.find({
+      email: { $ne: activUser.email }, // Exclude the active user
+      _id: { $nin: [...idOfUsersWhoBlockMe] }, // Exclude users who have blocked the active user
+    });
+    if (!usersToShow.length) {
+      res.send('blocked');
+      return;
+    }
+    res.send(usersToShow);
+  } catch (response) {
+    console.log(response);
+  }
+};
+
 const getAlUsers = async (req, res) => {
-  const users = await User.find({});
-  res.send(users);
+  try {
+    const users = await User.find({});
+
+    res.send(users);
+  } catch ({ response }) {
+    console.log(response.data);
+  }
 };
 
 const addToFavorites = async (req, res) => {
@@ -133,6 +174,42 @@ const removeFromFavorites = async (req, res) => {
     console.log(error);
   }
 };
+const removeFromBlockList = async (req, res) => {
+  try {
+    const deletesUser = await User.findOne({ _id: req.params.id });
+    const user = await User.findOneAndUpdate(
+      { email: req.body.email },
+      { $pull: { blockList: { _id: mongoose.Types.ObjectId(req.params.id) } } },
+      { new: true }
+    );
+
+    res.send(deletesUser);
+  } catch (error) {
+    console.log(error);
+  }
+};
+const addToBlockList = async (req, res) => {
+  try {
+    const blockedUser = await User.findById({ _id: req.params.id });
+
+    let { _id, name, image, age, gender, vip } = blockedUser;
+
+    const user = await User.updateOne(
+      { email: req.body.email },
+
+      {
+        $addToSet: {
+          blockList: { _id, name, image, age, gender, vip },
+        },
+      },
+      { new: true }
+    );
+
+    res.status(200).send(blockedUser);
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 const getFavoritesUsers = async (req, res) => {
   try {
@@ -140,6 +217,16 @@ const getFavoritesUsers = async (req, res) => {
     if (!user) return;
     if (!user.favorites) return;
     res.send(user.favorites);
+  } catch (error) {
+    console.log(error);
+  }
+};
+const getBlockedUsers = async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.params.id });
+    if (!user) return;
+    if (!user.blockList) return;
+    res.send(user.blockList);
   } catch (error) {
     console.log(error);
   }
@@ -155,6 +242,7 @@ const getNotFavoritesUsers = async (req, res) => {
     const users = await User.find({
       _id: { $ne: req.params.id },
       _id: { $nin: user.favorites.map((favorite) => favorite._id) },
+      _id: { $nin: user.blockList.map((bloked) => bloked._id) },
     });
     const filteredUsers = users.filter(
       (u) => u._id.toString() !== user._id.toString()
@@ -326,6 +414,7 @@ module.exports = {
   signIn,
   getUser,
   getAlUsers,
+  getUsers,
   addToFavorites,
   removeFromFavorites,
   getFavoritesUsers,
@@ -338,4 +427,7 @@ module.exports = {
   askVip,
   getVipReq,
   deleteVipReq,
+  addToBlockList,
+  removeFromBlockList,
+  getBlockedUsers,
 };

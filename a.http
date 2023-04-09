@@ -11,7 +11,12 @@ Content-Type: application/json
 GET {{local}}/users/get-favorites/640df4915e4e3e14436d177a
 Content-Type: application/json
 
-
+###
+GET {{local}}/users/64322c5e63ab95f3e4dea8a6
+Content-Type: application/json
+###
+GET {{local}}/users/get-blocked/6431e8e78a8c0d185d095982
+Content-Type: application/json
 
 ###
 POST {{local}}/me/remove-favorites/640deb6e81b08c9a1ad186e2
@@ -35,6 +40,21 @@ x-auth-token:{{token}}
 Content-Type: application/json
 
 {"email":"111@g.com"}
+
+###
+
+POST {{local}}/me/remove-block/6431d579de8435f6844aa320
+x-auth-token:{{token}}
+Content-Type: application/json
+
+{"email":"444@g.com"}
+###
+POST {{local}}/me/block/6428969115697704fa8efc33
+x-auth-token:{{token}}
+Content-Type: application/json
+
+{"email":"rhehhbeb@g.com"}
+
 ###
 
 POST {{local}}/users/vip
