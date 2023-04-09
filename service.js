@@ -65,7 +65,6 @@ const signIn = async (req, res) => {
     return;
   }
   try {
-    console.log('ggg');
     const { email: mail, password } = req.body;
 
     const user = await User.findOne({
