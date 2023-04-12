@@ -12,7 +12,7 @@ GET {{local}}/users/get-favorites/640df4915e4e3e14436d177a
 Content-Type: application/json
 
 ###
-GET {{local}}/users/64322c5e63ab95f3e4dea8a6
+GET {{local}}/users/64354a149688ac7226af1c8b
 Content-Type: application/json
 ###
 GET {{local}}/users/get-blocked/6431e8e78a8c0d185d095982

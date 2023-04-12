@@ -93,32 +93,55 @@ const getUser = async (req, res) => {
   res.send(user);
 };
 const getUsers = async (req, res) => {
+  console.log('id********', req.params.id);
   try {
-    const activUser = await User.findById({ _id: req.params.id });
-    const users = await User.find({ _id: { $ne: activUser._id } });
+    const activeUser = await User.findById({ _id: req.params.id });
+    const users = await User.find({ _id: { $ne: activeUser._id } });
     const usersWithBlockList = [];
+    const activeUserBlockList = activeUser.blockList;
+    console.log(activeUserBlockList, 'activeUserBlockList');
     for (let key of users) {
+      console.log(key);
       if (key.blockList.length) {
         usersWithBlockList.push(key);
+        // console.log(usersWithBlockList);
       }
     }
 
     const idOfUsersWhoBlockMe = [];
-    for (let user of usersWithBlockList) {
-      for (let item of user.blockList) {
-        if (item._id.toString() === activUser._id.toString()) {
-          console.log(' block-you', user);
-          idOfUsersWhoBlockMe.push(user._id);
+    const idOfUsersInMyBlockedList = [];
+
+    if (usersWithBlockList.length) {
+      for (let user of usersWithBlockList) {
+        for (let item of user.blockList) {
+          console.log(item);
+          if (item._id.toString() === activeUser._id.toString()) {
+            console.log(' block-you', user);
+            idOfUsersWhoBlockMe.push(user._id);
+          }
         }
       }
     }
-
+    if (activeUserBlockList.length) {
+      for (let id of activeUserBlockList) {
+        idOfUsersInMyBlockedList.push(id);
+        console.log(idOfUsersInMyBlockedList, 'idOfUsersWhoBlockMe');
+      }
+    }
     const usersToShow = await User.find({
-      email: { $ne: activUser.email }, // Exclude the active user
-      _id: { $nin: [...idOfUsersWhoBlockMe] }, // Exclude users who have blocked the active user
+      email: { $ne: activeUser.email }, // Exclude the active user
+      _id: { $nin: [...idOfUsersWhoBlockMe, ...idOfUsersInMyBlockedList] }, // Exclude users who have blocked the active user &&  users who have in active user blocked list
     });
     if (!usersToShow.length) {
-      res.send('blocked');
+      res.send([
+        {
+          name: 'No users',
+
+          gender: male,
+
+          image: '',
+        },
+      ]);
       return;
     }
     res.send(usersToShow);
@@ -138,17 +161,17 @@ const getAlUsers = async (req, res) => {
 };
 
 const addToFavorites = async (req, res) => {
+  console.log('favoriteUser', req.params);
   try {
     const favoriteUser = await User.findById({ _id: req.params.id });
-
     let { _id, name, image, age, gender, vip } = favoriteUser;
-
+    console.log(_id);
     const user = await User.updateOne(
       { email: req.body.email },
 
       {
         $addToSet: {
-          favorites: { _id, name, image, age, gender, vip },
+          favorites: _id,
         },
       },
       { new: true }
@@ -163,12 +186,14 @@ const addToFavorites = async (req, res) => {
 const removeFromFavorites = async (req, res) => {
   try {
     const deletesUser = await User.findOne({ _id: req.params.id });
+    console.log('deletesUser._id', deletesUser._id.toString());
     const user = await User.findOneAndUpdate(
       { email: req.body.email },
-      { $pull: { favorites: { _id: mongoose.Types.ObjectId(req.params.id) } } },
+      { $pull: { favorites: deletesUser._id } },
       { new: true }
     );
 
+    console.log(deletesUser);
     res.send(deletesUser);
   } catch (error) {
     console.log(error);
@@ -180,6 +205,7 @@ const removeFromBlockList = async (req, res) => {
     const user = await User.findOneAndUpdate(
       { email: req.body.email },
       { $pull: { blockList: { _id: mongoose.Types.ObjectId(req.params.id) } } },
+
       { new: true }
     );
 
@@ -193,7 +219,7 @@ const addToBlockList = async (req, res) => {
     const blockedUser = await User.findById({ _id: req.params.id });
 
     let { _id, name, image, age, gender, vip } = blockedUser;
-
+    console.log(_id);
     const user = await User.updateOne(
       { email: req.body.email },
 
@@ -201,6 +227,7 @@ const addToBlockList = async (req, res) => {
         $addToSet: {
           blockList: { _id, name, image, age, gender, vip },
         },
+        $pull: { favorites: _id },
       },
       { new: true }
     );
@@ -225,7 +252,7 @@ const getBlockedUsers = async (req, res) => {
   try {
     const user = await User.findOne({ _id: req.params.id });
     if (!user) return;
-    if (!user.blockList) return;
+    if (!user.blockList.length) return;
     res.send(user.blockList);
   } catch (error) {
     console.log(error);
@@ -242,7 +269,7 @@ const getNotFavoritesUsers = async (req, res) => {
     const users = await User.find({
       _id: { $ne: req.params.id },
       _id: { $nin: user.favorites.map((favorite) => favorite._id) },
-      _id: { $nin: user.blockList.map((bloked) => bloked._id) },
+      _id: { $nin: user.blockList.map((blocked) => blocked._id) },
     });
     const filteredUsers = users.filter(
       (u) => u._id.toString() !== user._id.toString()
