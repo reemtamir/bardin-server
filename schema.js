@@ -35,8 +35,6 @@ userSchema.methods.generateToken = function () {
       email: this.email,
       _id: this._id,
       vip: this.vip,
-      favorites: this.favorites,
-      blockList: this.blockList,
     },
     process.env.JWT_SECRET_TOKEN
   );

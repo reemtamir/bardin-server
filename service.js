@@ -7,11 +7,53 @@ const {
   Vip,
   validateVipReq,
 } = require('./schema');
+const sharp = require('sharp');
 const bcrypt = require('bcrypt');
 const _ = require('lodash');
 const getAge = require('./utils/fn');
 const mongoose = require('mongoose');
-const { not } = require('joi');
+
+// Compresses PNG/JPEG images
+async function compress(imgDataURL) {
+  // Handle PNG compression
+  if (imgDataURL === '') return;
+
+  if (imgDataURL.includes('data:image/png')) {
+    const imgData = imgDataURL.split(';base64,')[1];
+    const bufferedImgData = Buffer.from(imgData, 'base64');
+
+    const compressedPNG = await sharp(bufferedImgData)
+      .toFormat('png')
+      .resize({ width: 150 })
+      .png({ quality: 100 })
+      .toBuffer();
+
+    const compressedPNG_DataURL = ` data:image/png;base64,${compressedPNG.toString(
+      'base64'
+    )};`;
+
+    return compressedPNG_DataURL;
+
+    // Handle JPEG compression
+  } else if (imgDataURL.includes('data:image/jpeg')) {
+    const imgData = imgDataURL.split(';base64,')[1];
+    const bufferedImgData = Buffer.from(imgData, 'base64');
+
+    const compressedJPEG = await sharp(bufferedImgData)
+      .toFormat('jpeg')
+      .resize({ width: 150 })
+      .jpeg({ quality: 100 })
+      .toBuffer();
+
+    const compressedJPEG_DataURL = `data:image/jpeg;base64,${compressedJPEG.toString(
+      'base64'
+    )}`;
+
+    return compressedJPEG_DataURL;
+
+    // Throw error if the image is not of type JPEG or PNG
+  } else throw new Error('Could not compress image');
+}
 ///////USER
 const createUser = async (req, res) => {
   const { error } = validateUser(req.body);
@@ -19,16 +61,7 @@ const createUser = async (req, res) => {
     res.status(400).send(error.details[0].message);
     return;
   }
-  let {
-    name,
-    email,
-    password,
-    vip,
-    gender,
-    age,
-    isFavorite,
-    image = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
-  } = req.body;
+  let { name, email, password, vip, gender, age, isFavorite, image } = req.body;
 
   let user = await User.findOne({ email: email });
   if (user) {
@@ -41,7 +74,7 @@ const createUser = async (req, res) => {
     res.status(404).send('User too young');
     return;
   }
-
+  const imageAfterCompress = await compress(image);
   try {
     user = await new User({
       name: name,
@@ -49,7 +82,7 @@ const createUser = async (req, res) => {
       password: await bcrypt.hash(password, 12),
       gender: gender,
       age: calculatedAge,
-      image: image,
+      image: imageAfterCompress,
       vip: vip,
       isFavorite: isFavorite,
     }).save();
@@ -80,7 +113,7 @@ const signIn = async (req, res) => {
       return;
     }
     const token = user.generateToken();
-
+    console.log(token);
     res.send(token);
   } catch (error) {
     console.log('error', error);
@@ -137,8 +170,9 @@ const getUsers = async (req, res) => {
         },
       ]);
       return;
+    } else {
+      res.send(usersToShow);
     }
-    res.send(usersToShow);
   } catch (response) {
     console.log(response);
   }
