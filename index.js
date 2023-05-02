@@ -1,4 +1,5 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const app = express();
 const PORT = 3000;
 const { connect } = require('./schema');
@@ -11,7 +12,7 @@ const adminRouter = require('./routes/admin');
 const morgan = require('morgan');
 //{ origin: 'https://reemtamir.github.io',}
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '3mb' }));
 app.use(express.urlencoded());
 app.use(express.text());
 app.use(morgan('dev'));
@@ -20,6 +21,14 @@ const socketIO = require('socket.io')(http, {
     origin: 'http://localhost:3002',
   },
 });
+// Set a rate limit of 10 requests per minute
+const limiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
+  max: 1000, // 10 requests
+});
+
+// Apply the rate limit middleware to all requests
+app.use(limiter);
 
 connect();
 app.use('/users', usersRouter);
