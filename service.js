@@ -112,8 +112,9 @@ const signIn = async (req, res) => {
       res.status(400).send('Invalid  password');
       return;
     }
+    user.isOnline = true;
     const token = user.generateToken();
-    console.log(token);
+
     res.send(token);
   } catch (error) {
     console.log('error', error);

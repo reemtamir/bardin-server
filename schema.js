@@ -24,6 +24,7 @@ const userSchema = mongoose.Schema({
   gender: { type: String },
   createdAt: { type: Date, default: Date.now },
   vip: { type: Boolean, default: false },
+  isOnline: { type: Boolean, default: false },
   favorites: { type: Array },
   blockList: { type: Array },
 });
@@ -35,6 +36,7 @@ userSchema.methods.generateToken = function () {
       email: this.email,
       _id: this._id,
       vip: this.vip,
+      isOnline: this.isOnline,
     },
     process.env.JWT_SECRET_TOKEN
   );
