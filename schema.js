@@ -87,6 +87,7 @@ const adminSchema = mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   vip: { type: Boolean, default: true },
   admin: { type: Boolean, default: true },
+  isOnline: { type: Boolean, default: false },
 });
 
 adminSchema.methods.generateToken = function () {
@@ -97,6 +98,7 @@ adminSchema.methods.generateToken = function () {
       _id: this._id,
       vip: this.vip,
       admin: this.admin,
+      isOnline: this.isOnline,
     },
     process.env.JWT_SECRET_TOKEN
   );

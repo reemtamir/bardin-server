@@ -112,9 +112,9 @@ const signIn = async (req, res) => {
       res.status(400).send('Invalid  password');
       return;
     }
-    user.isOnline = true;
-    const token = user.generateToken();
 
+    const token = user.generateToken();
+    await User.updateOne({ email: mail }, { $set: { isOnline: true } });
     res.send(token);
   } catch (error) {
     console.log('error', error);
@@ -376,6 +376,41 @@ const askVip = async (req, res) => {
   }
 };
 
+const updateUserOnlineStatus = async (req, res) => {
+  const isUser = await User.findOne({ email: req.body.email });
+  const isAdmin = await Admin.findOne({ email: req.body.email });
+  if (isUser) {
+    const user = await User.updateOne(
+      {
+        email: req.body.email,
+      },
+      {
+        $set: {
+          isOnline: false,
+        },
+      },
+      { new: true }
+    );
+
+    res.send(user);
+  }
+  if (isAdmin) {
+    const user = await Admin.updateOne(
+      {
+        email: req.body.email,
+      },
+      {
+        $set: {
+          isOnline: false,
+        },
+      },
+      { new: true }
+    );
+
+    res.send(user);
+  }
+};
+
 ///////////ADMIN
 const createAdmin = async (req, res) => {
   const { error } = validateAdmin(req.body);
@@ -427,7 +462,7 @@ const adminSignIn = async (req, res) => {
       return;
     }
     const token = admin.generateToken();
-
+    await Admin.updateOne({ email: mail }, { $set: { isOnline: true } });
     res.send(token);
   } catch ({ error }) {
     return error;
@@ -488,4 +523,5 @@ module.exports = {
   addToBlockList,
   removeFromBlockList,
   getBlockedUsers,
+  updateUserOnlineStatus,
 };
