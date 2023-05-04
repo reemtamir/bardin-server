@@ -180,7 +180,6 @@ const getUsers = async (req, res) => {
   }
 };
 
-
 const getAlUsers = async (req, res) => {
   try {
     const users = await User.find({});
@@ -526,5 +525,4 @@ module.exports = {
   removeFromBlockList,
   getBlockedUsers,
   updateUserOnlineStatus,
-  getUsersByMail,
 };
