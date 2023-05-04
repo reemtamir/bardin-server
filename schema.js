@@ -46,9 +46,7 @@ const validateUser = (user) => {
     name: Joi.string()
       .min(2)
       .max(255)
-      .regex(
-        /^[\u0590-\u05fe\u0621-\u064aA-Za-z]+(([',. -][\u0590-\u05fe\u0621-\u064aA-Za-z ])?[\u0590-\u05fe\u0621-\u064aA-Za-z]*)*$/
-      )
+      .regex(/^[A-Za-z]+[0-9]*$/)
 
       .required(),
     email: Joi.string().min(6).max(255).required().email(),
