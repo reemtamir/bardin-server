@@ -129,6 +129,7 @@ const getUser = async (req, res) => {
 const getUsers = async (req, res) => {
   try {
     const activeUser = await User.findById({ _id: req.params.id });
+    if (!activeUser) return;
     const users = await User.find({ _id: { $ne: activeUser._id } });
     const usersWithBlockList = [];
     const activeUserBlockList = activeUser.blockList;
@@ -178,6 +179,7 @@ const getUsers = async (req, res) => {
     console.log(response);
   }
 };
+
 
 const getAlUsers = async (req, res) => {
   try {
@@ -524,4 +526,5 @@ module.exports = {
   removeFromBlockList,
   getBlockedUsers,
   updateUserOnlineStatus,
+  getUsersByMail,
 };
