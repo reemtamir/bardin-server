@@ -12,8 +12,8 @@ const {
   updateUserOnlineStatus,
 } = require('../service');
 
-profileRouter.get('/:id', getUser);
-profileRouter.put('/update-online', updateUserOnlineStatus);
+profileRouter.get('/:id', middlw, getUser);
+profileRouter.put('/update-online', middlw, updateUserOnlineStatus);
 profileRouter.post('/block/:id', middlw, addToBlockList);
 profileRouter.post('/remove-block/:id', middlw, removeFromBlockList);
 profileRouter.post('/favorites/:id', middlw, addToFavorites);
