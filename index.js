@@ -1,7 +1,7 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const app = express();
-const PORT = 3000;
+const PORT = 4000;
 const { connect } = require('./schema');
 const http = require('http').Server(app);
 const cors = require('cors');
