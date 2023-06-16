@@ -1,6 +1,6 @@
 const express = require('express');
 const profileRouter = express.Router();
-const middlw = require('../middleware');
+const middlw = require('../middlewares/authMiddleware');
 const {
   editUser,
   getUser,
@@ -10,7 +10,7 @@ const {
   addToBlockList,
   removeFromBlockList,
   updateUserOnlineStatus,
-} = require('../service');
+} = require('../controllers/user.controller');
 
 profileRouter.get('/:id', middlw, getUser);
 profileRouter.put('/update-online', middlw, updateUserOnlineStatus);

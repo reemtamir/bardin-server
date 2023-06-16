@@ -1,36 +1,47 @@
 const express = require('express');
-const rateLimit = require('express-rate-limit');
 const app = express();
 const PORT = 4000;
-const { connect } = require('./schema');
 const http = require('http').Server(app);
+const limiter = require('./middlewares/limiterMiddleware');
+
 const cors = require('cors');
+const morgan = require('morgan');
+const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+dotenv.config();
+
 const usersRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
-const profileRouter = require('./routes/my-profile');
+const profileRouter = require('./routes/user');
 const adminRouter = require('./routes/admin');
-const morgan = require('morgan');
-//{ origin: 'https://reemtamir.github.io',}
+
+const connectDB = async () => {
+  return mongoose
+    .connect('mongodb://127.0.0.1:27017/bardinDB')
+    .then(() => console.log('connected to db'))
+    .catch((err) => console.log(err));
+};
+
+mongoose.set('strictQuery', false);
+
 app.use(cors());
+//{ origin: 'https://reemtamir.github.io',}
+
+// Apply the rate limit middleware to all requests
+// app.use(limiter);
+
 app.use(express.json({ limit: '3mb' }));
-app.use(express.urlencoded());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.text());
 app.use(morgan('dev'));
+
 const socketIO = require('socket.io')(http, {
   cors: {
     origin: 'http://localhost:3002',
   },
 });
-// Set a rate limit of 10 requests per minute
-const limiter = rateLimit({
-  windowMs: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
-  max: 1000, // 10 requests
-});
 
-// Apply the rate limit middleware to all requests
-app.use(limiter);
-
-connect();
+// Routers
 app.use('/users', usersRouter);
 app.use('/auth', authRouter);
 app.use('/me', profileRouter);
@@ -69,6 +80,10 @@ app.use('/admin', adminRouter);
 //     });
 //   });
 // });
+
+// Connect to database
+connectDB();
+
 http.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
 });

@@ -1,16 +1,16 @@
 const express = require('express');
 const adminRouter = express.Router();
-const middlw = require('../middleware');
+const middlw = require('../middlewares/authMiddleware');
 const {
   createAdmin,
-  adminSignIn,
+
   changeVip,
   getVipReq,
   deleteVipReq,
-} = require('../service');
+} = require('../controllers/admin.controller');
 
 adminRouter.post('/', createAdmin);
-adminRouter.post('/sign-in', adminSignIn);
+
 adminRouter.put('/change-vip/:id', middlw, changeVip);
 adminRouter.post('/delete-vip-req/:id', middlw, deleteVipReq);
 adminRouter.get('/vip-req', getVipReq);

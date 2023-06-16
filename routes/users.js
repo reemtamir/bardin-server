@@ -9,7 +9,7 @@ const {
   askVip,
   getBlockedUsers,
   getUsers,
-} = require('../service');
+} = require('../controllers/users.controller');
 
 usersRouter.post('/', createUser);
 usersRouter.post('/vip', askVip);
