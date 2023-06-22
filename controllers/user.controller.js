@@ -4,12 +4,32 @@ const { Admin } = require('../models/admin.model');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const _ = require('lodash');
+
 const getUser = async (req, res) => {
   const user = await User.findById({ _id: req.params.id });
 
   res.send(user);
 };
 
+const getUserByEmail = async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+
+    res.send(user);
+  } catch (error) {
+    res.send({ error: 'Failed finding user' });
+  }
+};
+
+const getUserBySocketId = async (socketId) => {
+  try {
+    const user = await User.findOne({ socketId });
+
+    return user;
+  } catch (error) {
+    console.log(error);
+  }
+};
 const addToFavorites = async (req, res) => {
   try {
     const favoriteUser = await User.findById({ _id: req.params.id });
@@ -168,15 +188,13 @@ const updateUserOnlineStatus = async (req, res) => {
 
 module.exports = {
   getUser,
-
   addToFavorites,
   removeFromFavorites,
-
   editUser,
   deleteUser,
-
   addToBlockList,
   removeFromBlockList,
-
   updateUserOnlineStatus,
+  getUserByEmail,
+  getUserBySocketId,
 };

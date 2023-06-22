@@ -10,8 +10,9 @@ const {
   addToBlockList,
   removeFromBlockList,
   updateUserOnlineStatus,
+  getUserByEmail,
 } = require('../controllers/user.controller');
-
+profileRouter.post('/email', getUserByEmail);
 profileRouter.get('/:id', middlw, getUser);
 profileRouter.put('/update-online', middlw, updateUserOnlineStatus);
 profileRouter.post('/block/:id', middlw, addToBlockList);

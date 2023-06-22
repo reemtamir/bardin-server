@@ -18,6 +18,7 @@ const userSchema = mongoose.Schema({
   isOnline: { type: Boolean, default: false },
   favorites: { type: Array },
   blockList: { type: Array },
+  socketId: { type: String },
 });
 
 userSchema.methods.generateToken = function () {
