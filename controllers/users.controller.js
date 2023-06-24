@@ -1,30 +1,31 @@
 const { User, validateUser } = require('../models/user.model');
-const { validateVipReq,Vip } = require('../models/vip.model');
+const { validateVipReq, Vip } = require('../models/vip.model');
 const getAge = require('../utils/getAge');
 const { compress } = require('../utils/imageCompression');
 const bcrypt = require('bcrypt');
 
 const createUser = async (req, res) => {
-  const { error } = validateUser(req.body);
-  if (error) {
-    res.status(400).send(error.details[0].message);
-    return;
-  }
-  let { name, email, password, vip, gender, age, isFavorite, image } = req.body;
-
-  let user = await User.findOne({ email: email });
-  if (user) {
-    res.status(400).send('User already registered');
-    return;
-  }
-
-  let calculatedAge = getAge(age);
-  if (calculatedAge < 18) {
-    res.status(404).send('User too young');
-    return;
-  }
-  const imageAfterCompress = await compress(image);
   try {
+    const { error } = validateUser(req.body);
+    if (error) {
+      res.status(400).send(error.details[0].message);
+      return;
+    }
+    let { name, email, password, vip, gender, age, isFavorite, image } =
+      req.body;
+
+    let user = await User.findOne({ email: email });
+    if (user) {
+      res.status(400).send('User already registered');
+      return;
+    }
+
+    let calculatedAge = getAge(age);
+    if (calculatedAge < 18) {
+      res.status(404).send('User too young');
+      return;
+    }
+    const imageAfterCompress = await compress(image);
     user = await new User({
       name: name,
       email: email,
@@ -91,7 +92,7 @@ const getUsers = async (req, res) => {
       res.send(usersToShow);
     }
   } catch (response) {
-    console.log(response);
+    res.status(400).send(response);
   }
 };
 
@@ -100,8 +101,8 @@ const getAlUsers = async (req, res) => {
     const users = await User.find({});
 
     res.send(users);
-  } catch ({ response }) {
-    console.log(response.data);
+  } catch (error) {
+    res.status(400).send(error);
   }
 };
 
@@ -112,7 +113,7 @@ const getFavoritesUsers = async (req, res) => {
     if (!user.favorites) return;
     res.send(user.favorites);
   } catch (error) {
-    console.log(error);
+    res.status(400).send(error);
   }
 };
 const getBlockedUsers = async (req, res) => {
@@ -122,7 +123,7 @@ const getBlockedUsers = async (req, res) => {
     if (!user.blockList.length) return;
     res.send(user.blockList);
   } catch (error) {
-    console.log(error);
+    res.status(400).send(error);
   }
 };
 
@@ -143,18 +144,17 @@ const getNotFavoritesUsers = async (req, res) => {
     );
     res.send(filteredUsers);
   } catch (error) {
-    console.log(error);
+    res.status(400).send(error);
   }
 };
 
 const askVip = async (req, res) => {
-  const { error } = validateVipReq({ ...req.body });
-  if (error) {
-    console.log(error);
-    res.status(400).send(error.details[0].message);
-    return;
-  }
   try {
+    const { error } = validateVipReq({ ...req.body });
+    if (error) {
+      res.status(400).send(error.details[0].message);
+      return;
+    }
     let vipReq = await Vip.findOne({
       email: req.body.email,
     });

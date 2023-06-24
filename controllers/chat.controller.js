@@ -15,22 +15,23 @@ const getChat = async (req, res) => {
 };
 
 const createChat = async (req, res) => {
+  try {
     let chat = await Chat.findOne({ users: { $all: req.body } });
     if (chat) {
       res.send(chat);
     } else {
-      try {
-        chat = await new Chat({
-          users: req.body,
-        }).save();
-  
-        res.send(chat);
-      } catch (error) {
-        res.status(400).send(error);
-      }
+      chat = await new Chat({
+        users: req.body,
+      }).save();
+
+      res.send(chat);
     }
-  };
-  
+  } catch (error) {
+    res.status(400).send(error);
+  }
+};
+
 module.exports = {
-  getChat,createChat
+  getChat,
+  createChat,
 };

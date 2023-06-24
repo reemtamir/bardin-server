@@ -21,7 +21,7 @@ const adminRouter = require('./routes/admin');
 const chatRouter = require('./routes/chat');
 const { User } = require('./models/user.model');
 const { Chat } = require('./models/chat.model');
-const { getUserBySocketId } = require('./controllers/user.controller');
+
 const connectDB = async () => {
   return mongoose
     .connect('mongodb://127.0.0.1:27017/bardinDB')
@@ -60,7 +60,6 @@ function listen(socketServer) {
   socketServer.on('connection', (socket) => {
     console.log(`⚡: ${socket.id} user just connected!`);
     socket.on('connection', async (data) => {
-  
       await User.findOneAndUpdate(
         { email: data },
         {
@@ -110,11 +109,11 @@ function listen(socketServer) {
         console.log(error);
       }
     });
-    socket.on('offLine',  (email) => {
+    socket.on('offLine', (email) => {
       socket.broadcast.emit('offLine', { email });
     });
 
-    socket.on('disconnect',  () => {
+    socket.on('disconnect', () => {
       console.log(socket.id, '🔥🔥🔥: A user disconnected');
     });
   });

@@ -3,6 +3,7 @@ const profileRouter = express.Router();
 const middlw = require('../middlewares/authMiddleware');
 const {
   editUser,
+  editPassword,
   getUser,
   deleteUser,
   addToFavorites,
@@ -20,6 +21,7 @@ profileRouter.post('/remove-block/:id', middlw, removeFromBlockList);
 profileRouter.post('/favorites/:id', middlw, addToFavorites);
 profileRouter.post('/remove-favorites/:id', middlw, removeFromFavorites);
 profileRouter.put('/edit/:id', middlw, editUser);
+profileRouter.put('/edit-pass/:id', middlw, editPassword);
 profileRouter.delete('/delete/:id', middlw, deleteUser);
 
 module.exports = profileRouter;

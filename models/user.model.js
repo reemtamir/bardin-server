@@ -55,6 +55,23 @@ const validateUser = (user) => {
   });
   return schema.validate(user);
 };
+
+const validateEditUser = (user) => {
+  const schema = Joi.object({
+    name: Joi.string()
+      .min(2)
+      .max(255)
+      .regex(/^[A-Za-z\u0590-\u05FF]+[0-9]*$/)
+
+      .required(),
+    email: Joi.string().min(6).max(255).required().email(),
+
+    age: Joi.string(),
+    gender: Joi.string(),
+    image: Joi.string().allow(''),
+  });
+  return schema.validate(user);
+};
 const validateSignIn = (user) => {
   const schema = Joi.object({
     email: Joi.string().min(6).max(255).required().email(),
@@ -73,5 +90,5 @@ const User = mongoose.model('User', userSchema, 'users');
 module.exports = {
   User,
   validateSignIn,
-  validateUser,
+  validateUser,validateEditUser
 };

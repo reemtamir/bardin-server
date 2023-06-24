@@ -3,12 +3,12 @@ const { Admin } = require('../models/admin.model');
 const bcrypt = require('bcrypt');
 
 const signIn = async (req, res) => {
-  const { error } = validateSignIn(req.body);
-  if (error) {
-    res.status(400).send(error.details[0].message);
-    return;
-  }
   try {
+    const { error } = validateSignIn(req.body);
+    if (error) {
+      res.status(400).send(error.details[0].message);
+      return;
+    }
     const { email: mail, password } = req.body;
 
     const user = await User.findOne({
@@ -28,17 +28,17 @@ const signIn = async (req, res) => {
     await User.updateOne({ email: mail }, { $set: { isOnline: true } });
     res.send(token);
   } catch (error) {
-    console.log('error', error);
+    res.status(400).send(error);
   }
 };
 
 const adminSignIn = async (req, res) => {
-  const { error } = validateSignIn(req.body);
-  if (error) {
-    res.status(400).send(error.details[0].message);
-    return;
-  }
   try {
+    const { error } = validateSignIn(req.body);
+    if (error) {
+      res.status(400).send(error.details[0].message);
+      return;
+    }
     const { email: mail, password } = req.body;
 
     const admin = await Admin.findOne({
@@ -57,7 +57,7 @@ const adminSignIn = async (req, res) => {
     await Admin.updateOne({ email: mail }, { $set: { isOnline: true } });
     res.send(token);
   } catch ({ response }) {
-    return response.data;
+    retres.status(400).send(response.data);
   }
 };
 
