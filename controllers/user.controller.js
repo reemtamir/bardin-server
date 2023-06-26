@@ -157,7 +157,7 @@ const editPassword = async (req, res) => {
     let user = await User.findById({ _id: req.params.id });
     const isValidPassword = await bcrypt.compare(currPass, user.password);
     if (!isValidPassword) {
-      res.status(400).send({ error: 'Invalid password' });
+      res.status(400).send({ error: 'Old password is incorrect' });
       return;
     }
 
