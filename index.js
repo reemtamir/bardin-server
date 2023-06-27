@@ -35,7 +35,7 @@ app.use(cors());
 //{ origin: 'https://reemtamir.github.io',}
 
 // Apply the rate limit middleware to all requests
-// app.use(limiter);
+app.use(limiter);
 
 app.use(express.json({ limit: '3mb' }));
 app.use(express.urlencoded({ extended: true }));
